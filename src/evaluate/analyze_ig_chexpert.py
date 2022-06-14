@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+#Used to plot integrated gradient similarities produced by Integrated_Gradients.py
+
 heads = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
 real_ims = ['Vrim', 'Crim']
 synth_ims = ['Vsim', 'Csim']
@@ -34,11 +36,7 @@ for h in heads:
             patch.set_facecolor(colors[i][j])
 
         print(np.mean(hDF[group[0]].values), np.mean(hDF[group[1]].values))
-        if i == 100:
-            axs[i].set_title("Integrated Gradient Cosine Similarity\n" + titles[i])
-        else:
-            axs[i].set_title(titles[i])
-
+        axs[i].set_title(titles[i])
         axs[i].set_ylabel("Cosine similarity")
         axs[i].set_xticklabels(['CNN', 'CLIP'])
         for j, t in enumerate(axs[i].get_xticklabels()):

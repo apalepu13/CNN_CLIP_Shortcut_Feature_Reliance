@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from collections import OrderedDict
 
-#Not my own: Code from CLIP
+#THIS IS NOT MY OWN CODE, simply copied from CLIP if one want to try training a ViT instead of a CNN
 
 class LayerNorm(nn.LayerNorm):
     """Subclass torch's LayerNorm to handle fp16."""
@@ -87,7 +87,6 @@ class VisionTransformer(nn.Module):
             x = x @ self.proj
 
         return x
-
 
 class VisionClassifier(nn.Module):
     def __init__(self,  output_heads, output_dim, input_resolution = 224, patch_size = 32, width = 768, layers = 12, heads = 8):

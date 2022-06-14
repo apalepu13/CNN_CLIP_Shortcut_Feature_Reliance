@@ -15,6 +15,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+#Specifies which vision model version
 def get_loadpath(args):
     save_path = args.model_path + 'vision'
     if args.vit:
@@ -34,6 +35,7 @@ def get_loadpath(args):
     loadpath = os.path.join(save_path, np.array(vis_files)[highest])
     return loadpath
 
+#Train CNN/ViT if desired
 def main(args):
     criterion = torch.nn.BCEWithLogitsLoss()
     out_heads = ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion']
@@ -116,7 +118,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_path', type=str, default='/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/models/vision_model/', help='path for saving trained models')
+    parser.add_argument('--model_path', type=str, default='/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/models/vision_model/', help='path for saving trained models')
     parser.add_argument('--log_step', type=int, default=100000, help='step size for printing log info')
     parser.add_argument('--val_step', type=int, default=2, help='step size for printing val info')
     parser.add_argument('--debug', type=bool, default=False, const = True, nargs='?', help='debug mode, dont save')

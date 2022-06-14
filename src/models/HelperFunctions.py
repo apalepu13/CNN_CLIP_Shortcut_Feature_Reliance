@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+#Wrapper to create datasets. Use get_overwrites to get perfect adversarial/helpful shortcut datasets
 def getDatasets(source, subset = ['train', 'val', 'test'], synthetic = False,
                 get_text = True, get_good=False, get_adversary = False, get_overwrites=False, get_seg=False,
                 heads = ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion']):
@@ -22,6 +23,7 @@ def getDatasets(source, subset = ['train', 'val', 'test'], synthetic = False,
                                               out_heads = heads)
     return datlist
 
+#Wrapper for dataloaders, use with getDatasets
 def getLoaders(datasets, args=None, subset = ['train', 'val', 'test'], num_work = 16, shuffle=True):
     loaders = []
     for sub in subset:
@@ -37,6 +39,7 @@ def getLoaders(datasets, args=None, subset = ['train', 'val', 'test'], num_work 
 
     return loaders
 
+#Used during CLIP model training to resume/start new model training
 def getExperiment(args, mp):
     exp = args.exp
     if exp is -1:
@@ -61,6 +64,7 @@ def getExperiment(args, mp):
         fp = os.path.join(mp, 'exp'+str(exp))
     return fp
 
+#Used alongside getExperiment to resume/start new CLIP model training
 def startExperiment(args, je_model, optimizer, fp):
     if args.resume:
         if os.listdir(os.path.join(fp)):
@@ -90,6 +94,7 @@ def startExperiment(args, je_model, optimizer, fp):
                 text_file.write(txt)
     return start, best_val_loss, args
 
+#Defines the CLIP loss
 def clip_loss(im_logits, text_logits, device, loss_weight = 1, criterion = nn.CrossEntropyLoss()):
     samp = torch.tensor(np.arange(im_logits.shape[0]))
     loss_a = criterion(im_logits, samp.to(device))
@@ -98,6 +103,7 @@ def clip_loss(im_logits, text_logits, device, loss_weight = 1, criterion = nn.Cr
     closs = closs * loss_weight
     return closs
 
+#Training process for CLIP model
 def train(device, je_model, im1, im2, texts, tokenizer, optimizer):
     je_model.zero_grad(set_to_none=True)
     # Set mini-batch dataset
@@ -115,8 +121,8 @@ def train(device, je_model, im1, im2, texts, tokenizer, optimizer):
     return loss
 
 
-
-def validate(device, val_data_loader, tokenizer, je_model, criterion, source = "MIMIC", proportion = 1.0):
+#Validation for CLIP model
+def validate(device, val_data_loader, tokenizer, je_model, source = "MIMIC", proportion = 1.0):
     vlosses = []
     with torch.no_grad():
         for j, (valims1, valims2, valtexts, patients) in enumerate(val_data_loader):
@@ -140,7 +146,7 @@ def validate(device, val_data_loader, tokenizer, je_model, criterion, source = "
 
 
 
-
+#Loss for CNN
 def b_loss(impreds, labels, device, heads, criterion):
     losses = torch.zeros(len(heads))
     for i, h in enumerate(heads):
@@ -162,6 +168,7 @@ def b_loss(impreds, labels, device, heads, criterion):
         loss = 0
     return loss
 
+#CNN training
 def train_vision(device, vision_model, im1, im2, labels, heads, criterion=torch.nn.BCEWithLogitsLoss(), useOne=False):
     vision_model.zero_grad(set_to_none=True)
     # Set mini-batch dataset
@@ -180,6 +187,7 @@ def train_vision(device, vision_model, im1, im2, labels, heads, criterion=torch.
         loss = cl1
     return loss
 
+#CNN Validation
 def validate_vision(device, val_data_loader, vision_model, heads, criterion, source = "MIMIC", proportion = 1.0):
     vlosses = []
     with torch.no_grad():
@@ -208,6 +216,7 @@ def validate_vision(device, val_data_loader, vision_model, heads, criterion, sou
     print(source + ' Val Loss: ' + str(vlloss))
     return vlloss
 
+#Get labels for each classification task
 def getLabels(df, heads):
     labels = None
     for i, h in enumerate(heads):
@@ -223,7 +232,8 @@ def getLabels(df, heads):
 
     return labels
 
-def get_all_preds(DL, mod, heads = ['covid19', 'No Finding'], device='cuda'):
+#Get tensor of all predictions and targets
+def get_all_preds(DL, mod, heads = ['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion'], device='cuda'):
     tp, tt = None, None
     for i, res in enumerate(DL):
         try:

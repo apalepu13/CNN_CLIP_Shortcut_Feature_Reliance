@@ -5,7 +5,7 @@ import Transformer
 import jointEmbedding
 import Vision_Transformer
 
-
+#CNN Model, no classification head
 class CNN_Embeddings(nn.Module):
     def __init__(self, embed_dim=128, imagenet = True, freeze = False):
         super().__init__()
@@ -28,6 +28,7 @@ class CNN_Embeddings(nn.Module):
         im_embeddings = self.resnet(image)
         return im_embeddings
 
+#CNN Model with classification head
 class CNN_Classifier(nn.Module):
     def __init__(self, cnn_model, embed_size=128, freeze=True, num_heads=5):
         super().__init__()
@@ -49,6 +50,7 @@ class CNN_Classifier(nn.Module):
         output = self.classification_head(output)
         return output
 
+#Classifier using CNN embedding cosine similarity to text embeddings
 class CNN_Similarity_Classifier(nn.Module):
     def __init__(self, cnn_model,transformer_model, tokenizer, embed_size=128, freeze=True,
                heads=np.array(['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion'])
@@ -95,7 +97,7 @@ class CNN_Similarity_Classifier(nn.Module):
             return class_score
 
 
-#Outputs pred probabilities
+#CNN Classifier wrapper, outputs pred probabilities
 def getVisionClassifier(modpath, mod="", device='cuda', embed_size=512,
                 heads = np.array(['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion']),
                         je=False, getFrozen=True, add_finetune=False):
@@ -133,7 +135,7 @@ def getVisionClassifier(modpath, mod="", device='cuda', embed_size=512,
 
     return vision_model
 
-#Outputs cosine similarities
+#CNN Text-Similarity Classifier Wrapper, Outputs cosine similarities
 def getSimilarityClassifier(modpath, mod="", device='cuda', embed_size=512,
                 heads = np.array(['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion']),
                             text_num=20, avg_embedding=True, use_convirt=False, soft=False):

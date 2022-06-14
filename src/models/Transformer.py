@@ -4,26 +4,20 @@ from transformers import AutoTokenizer, AutoModel
 import pandas as pd
 import numpy as np
 
+#Gets text embeddings for particular labels in heads
 def getTextEmbeddings(heads, transformer, tokenizer, use_convirt = False, device = 'cuda', get_num=1):
     if use_convirt:
         filename = '/n/data2/hms/dbmi/beamlab/chexpert/convirt-retrieval/text-retrieval/query_custom.csv'
     else:
-        filename = '/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/data/mimic_label_queries.csv'
+        filename = '/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/data/mimic_label_queries.csv'
 
-    covid_filename = '/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/data/covid_queries.csv'
-    covidcsv = pd.read_csv(covid_filename)
-    zeroshots = ['covid19', 'Pneumonia', 'No Finding', 'Lungs', 'LeftLung', 'RightLung']
 
     mycsv = pd.read_csv(filename)
     if not use_convirt:
         l = []
         for h in heads:
-            if h in zeroshots:
-                temp = covidcsv[covidcsv['Variable'] == h]
-                l.append(temp.sample(n=get_num, replace=True))
-            else:
-                temp = mycsv[mycsv['Variable'] == h]
-                l.append(temp.sample(n=get_num, replace=True))
+            temp = mycsv[mycsv['Variable'] == h]
+            l.append(temp.sample(n=get_num, replace=True))
         mycsv = pd.concat(l)
 
     lab = mycsv['Variable']
@@ -45,6 +39,7 @@ def getTextEmbeddings(heads, transformer, tokenizer, use_convirt = False, device
     outlabs = torch.tensor(lab.map(head_dict).values)
     return torch.tensor(e), outlabs
 
+#Defines the tokenizer
 class Bio_tokenizer():
     def __init__(self, use_cxr_bert = True):
         self.use_cxr_bert = use_cxr_bert
@@ -64,6 +59,7 @@ class Bio_tokenizer():
                                         return_tensors='pt')
         return encodings
 
+#Defines the transformer, outputting embeddings in the same space as the vision embeddings
 class Transformer_Embeddings(nn.Module):
     def __init__(self, embed_dim = 128, use_cxr_bert = True):
         super().__init__()

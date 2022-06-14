@@ -11,6 +11,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 import re
 
+#Processes the MIMIC Texts
 def textProcess(text):
     sections = 'WET READ:|FINAL REPORT |INDICATION:|HISTORY:|STUDY:|COMPARISONS:|COMPARISON:|TECHNIQUE:|FINDINGS:|IMPRESSION:|NOTIFICATION:'
     mydict = {}
@@ -43,7 +44,7 @@ def textProcess(text):
         else:
             return text
 
-
+#Makes shortcut images for MIMIC/Chexpert data
 def make_synthetic(image, incorrect, correct, p_watermark = .9, p_correct = .9, overwrite = False, get_good = False, get_adversary = False):
     if isinstance(overwrite, str):
         overwrite = [overwrite]
@@ -103,6 +104,7 @@ def make_synthetic(image, incorrect, correct, p_watermark = .9, p_correct = .9, 
 
     return watermark_image, shortcut
 
+#Loads real/synth MIMIC/CheXpert data
 class Image_Text_Dataset(Dataset):
     """Chx - Report dataset.""" #d
 
@@ -114,7 +116,6 @@ class Image_Text_Dataset(Dataset):
                  mimic_chex_file='/n/data2/hms/dbmi/beamlab/mimic_cxr/mimic-cxr-2.0.0-chexpert.csv', chexpert_root_dir='/n/data2/hms/dbmi/beamlab/chexpert/',
                  text_process=True):
 
-        self.heads = out_heads
         self.out_heads = out_heads
 
         self.synth = synth
@@ -247,9 +248,9 @@ class Image_Text_Dataset(Dataset):
             image1 = self.im_preprocessing_train(image)
             image2 = self.im_preprocessing_train(image)
             if self.synth:
-                df = ims.loc[self.heads]
-                incorrect = [s for s in self.heads if df[s] != 1.0]
-                correct = [s for s in self.heads if df[s] == 1.0]
+                df = ims.loc[self.out_heads]
+                incorrect = [s for s in self.out_heads if df[s] != 1.0]
+                correct = [s for s in self.out_heads if df[s] == 1.0]
                 if not self.overwrite:
                     image1, shortcut1 = make_synthetic(image1_orig, incorrect, correct, get_adversary=self.get_adversary,get_good=self.get_good)
                     image2, shortcut2 = make_synthetic(image2_orig, incorrect, correct, get_adversary=self.get_adversary,get_good=self.get_good)
@@ -288,8 +289,8 @@ class Image_Text_Dataset(Dataset):
             image = self.im_preprocessing_test(image)
 
             if self.synth:
-                incorrect = [s for s in self.heads if df[s] != 1.0]
-                correct = [s for s in self.heads if df[s] == 1.0]
+                incorrect = [s for s in self.out_heads if df[s] != 1.0]
+                correct = [s for s in self.out_heads if df[s] == 1.0]
                 if not self.overwrite:
                     image, shortcut = make_synthetic(image, incorrect, correct, get_adversary=self.get_adversary, get_good=self.get_good)
                 else:

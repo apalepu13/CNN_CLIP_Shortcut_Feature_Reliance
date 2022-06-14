@@ -80,6 +80,7 @@ def plot_ig_saliency(img, targind, model, myfig, myax, x, y, use_abs = True, act
         myax[x,y].set_yticks([], minor=True)
     return gs
 
+#Compute and (possibly) plot integrated gradients
 def getAttributions(im_dict, real_model,synth_model, heads, target='Cardiomegaly', mod_name='vision', im_number=0, df=None, use_abs = True, actually_plot = True):
     if actually_plot:
         myfig, myax = plt.subplots(2, 3, figsize=(12, 7))
@@ -119,23 +120,15 @@ def getAttributions(im_dict, real_model,synth_model, heads, target='Cardiomegaly
     else:
         return dist_real_im, dist_synth_im, dist_real_mod, dist_synth_mod
 
+#Quantify distance between two integrated gradient maps in several ways (euclidean, cosine sim)
 def getIGdistance(sal1, sal2):
     sal1 = sal1.flatten()
     sal2 = sal2.flatten()
-    thresh = .2
-    tsal1 = sal1[(abs(sal1) + abs(sal2))>thresh]
-    tsal2 = sal2[(abs(sal1) + abs(sal2))>thresh]
-    ttot2 = np.sqrt(np.sum(np.square(tsal2)))
-    ttot1 = np.sqrt(np.sum(np.square(tsal1)))
-
     tot2 = np.sqrt(np.sum(np.square(sal2)))
     tot1 = np.sqrt(np.sum(np.square(sal1)))
     normsal2 = sal2/tot2
     normsal1 = sal1/tot1
-
-    tnormsal1 = tsal1/ttot1
-    tnormsal2 = tsal2/ttot2
-    return np.sqrt(np.sum(np.square(sal2-sal1))), np.dot(normsal1, normsal2), np.dot(tnormsal1, tnormsal2)
+    return np.sqrt(np.sum(np.square(sal2-sal1))), np.dot(normsal1, normsal2)
 
 def main(args):
     heads = np.array(['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion'])
@@ -157,6 +150,7 @@ def main(args):
         finetuned_vision_model_synth = getVisionClassifier(args.model_path_synth, args.model_synth, device, args.embed_size, heads, add_finetune=True)
         finetuned_je_model_synth = getVisionClassifier(args.je_model_path_synth, args.je_model_synth, device,args.embed_size, heads, add_finetune=True)
 
+    #Just plot for one image
     if args.getOne:
         im_number = 99
         im_dict = {}
@@ -172,6 +166,7 @@ def main(args):
             getAttributions(im_dict, je_model_real, je_model_synth, heads, target=target, mod_name="CLIP", im_number=im_number, df = normDf, use_abs=False)
             if args.get_finetuned:
                 getAttributions(im_dict, finetuned_vision_model_synth, finetuned_je_model_synth, heads, target=target, mod_name="finetuned", im_number=im_number, df=normDf, use_abs=False)
+    #Compute across all images and save results for analysis
     else:
         simDict = {'Vrim':[], 'Vsim':[], 'Vrmo':[], 'Vsmo':[],
                    'Crim':[], 'Csim':[], 'Crmo':[], 'Csmo':[],
@@ -208,17 +203,17 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--je_model_path_real', type=str,default='/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/models/je_model/exp6/')
-    parser.add_argument('--model_path_real', type=str, default='/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/models/vision_model/vision_CNN_real/')
-    parser.add_argument('--je_model_path_synth', type=str, default='/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/models/je_model/synth/exp7/')
-    parser.add_argument('--model_path_synth', type=str, default='/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/models/vision_model/vision_CNN_synthetic/', help='path for saving trained models')
+    parser.add_argument('--je_model_path_real', type=str,default='/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/models/je_model/exp6/')
+    parser.add_argument('--model_path_real', type=str, default='/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/models/vision_model/vision_CNN_real/')
+    parser.add_argument('--je_model_path_synth', type=str, default='/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/models/je_model/synth/exp7/')
+    parser.add_argument('--model_path_synth', type=str, default='/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/models/vision_model/vision_CNN_synthetic/', help='path for saving trained models')
 
     parser.add_argument('--je_model_real', type=str, default='je_model-28.pt')
     parser.add_argument('--model_real', type=str, default='model-14.pt')
     parser.add_argument('--je_model_synth', type=str, default='je_model-12.pt')
     parser.add_argument('--model_synth', type=str, default='model-14.pt', help='path from root to model')
 
-    parser.add_argument('--results_dir', type=str, default='/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/results/integrated_gradients/')
+    parser.add_argument('--results_dir', type=str, default='/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/results/integrated_gradients/')
     parser.add_argument('--sr', type=str, default='c') #c, co
     parser.add_argument('--subset', type=str, default='test')
     parser.add_argument('--synth', type=bool, default=False, const=True, nargs='?', help='Train on synthetic dataset')

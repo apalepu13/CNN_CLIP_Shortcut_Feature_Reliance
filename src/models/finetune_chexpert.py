@@ -10,7 +10,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-
+#Produces finetuned models from the real/synth cnn/clip models.
 def main(args):
     heads = np.array(['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion'])
     subset = ['valtrain', 'valval']
@@ -68,14 +68,14 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--je_model_path_real', type=str, default='../../../../models/je_model/exp6/', help='path for saving trained models')
+    parser.add_argument('--je_model_path_real', type=str, default='/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/models/je_model/exp6/', help='path for saving trained models')
     parser.add_argument('--je_model_real', type=str, default='je_model-28.pt', help='path from root to model')
-    parser.add_argument('--je_model_path_synth', type=str, default='../../../../models/je_model/synth/exp7/')
+    parser.add_argument('--je_model_path_synth', type=str, default='/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/models/je_model/synth/exp7/')
     parser.add_argument('--je_model_synth', type=str, default='je_model-12.pt')
 
-    parser.add_argument('--model_path_real', type=str, default='../../../../models/vision_model/vision_CNN_real/',help='path for saving trained models')
+    parser.add_argument('--model_path_real', type=str, default='/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/models/vision_model/vision_CNN_real/',help='path for saving trained models')
     parser.add_argument('--model_real', type=str, default='model-14.pt', help='path from root to model')
-    parser.add_argument('--model_path_synth', type=str, default='../../../../models/vision_model/vision_CNN_synthetic/')
+    parser.add_argument('--model_path_synth', type=str, default='/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/models/vision_model/vision_CNN_synthetic/')
     parser.add_argument('--model_synth', type=str, default='model-14.pt')
 
     parser.add_argument('--debug', type=bool, default=False, const = True, nargs='?', help='debug mode, dont save')
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--learning_rate', type=float, default=0.00001)
     parser.add_argument('--freeze', type=bool, default=False, const=True, nargs='?')
-    parser.add_argument('--results_dir', type=str, default="/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/results/training/")
+    parser.add_argument('--results_dir', type=str, default="/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/results/training/")
     args = parser.parse_args()
     print(args)
     main(args)

@@ -1,7 +1,7 @@
 import argparse
 import sys
 import pickle
-sys.path.insert(0, '/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/src/models/joint_embedding_model/')
+sys.path.insert(0, '/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/src/models/')
 import torch
 from CNN import *
 from Pretraining import *
@@ -17,12 +17,12 @@ import os
 from sklearn import metrics
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+#Used to evaluate the different model AUCs
 def main(args):
     heads = np.array(['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion'])
     heads_order = np.array(['Pleural Effusion', 'Edema', 'Consolidation', 'Cardiomegaly', 'Atelectasis'])
     colors = {'Average':'k','Atelectasis': 'r', 'Cardiomegaly': 'tab:orange', 'Consolidation': 'g', 'Edema': 'c',
               'Pleural Effusion': 'tab:purple'}
-    test_dat_dict = {'Real Test': 'o', 'Synthetic Test': '^', 'Adversarial Test': 'v'}
 
     #all 8
     mod_order = ['Real CNN', 'Zeroshot Real CLIP', 'Finetuned Real CNN', 'Finetuned Real CLIP',
@@ -75,9 +75,6 @@ def main(args):
         for m in all_models:
             print(m)
             outm = m.replace('/', '_')
-            isvis = "vision" in outm
-            issynth = "synth" in outm
-            isfine = "finetuned" in outm
 
             vision_model = models[m]
             aucs, aucs_synth, aucs_adv, tprs, fprs, thresholds = {}, {}, {}, {}, {}, {}
@@ -211,9 +208,6 @@ def main(args):
     axs[0].legend(handles1, labels1, loc=3, framealpha=1, title="Clinical Label", ncol=2)
     for k, ax in enumerate(axs):
         ax.axvline(x=1.5, color='k', label='axvline - full height')
-        #ax.axhline(y=1.0, color='k')
-        #ax.axvline(x=3.5, color='k', label='axvline - full height')
-        #ax.axvline(x=5.5, color='k', label='axvline - full height')
 
     plt.savefig(args.results_dir + "all_AUCs.png", bbox_inches="tight")
 
@@ -223,16 +217,19 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--vision_model_path', type=str, default = '/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/models/vision_model/')
-    parser.add_argument('--je_model_path', type=str, default='/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/models/je_model/', help='path for saving trained models')
+    parser.add_argument('--vision_model_path', type=str, default = '/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/models/vision_model/')
+    parser.add_argument('--je_model_path', type=str, default='/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/models/je_model/', help='path for saving trained models')
+    parser.add_argument('--results_dir', type=str,
+                        default='/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/results/zeroshot/')
+    parser.add_argument('--dat_dir', type=str,
+                        default='/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/data/')
 
-    parser.add_argument('--sr', type=str, default='c') #c, co
+    parser.add_argument('--sr', type=str, default='c')
     parser.add_argument('--subset', type=str, default='test')
     parser.add_argument('--generate', type=bool, default=False, const=True, nargs='?', help='Regenerate aucs and ROC curves')
-    parser.add_argument('--embed_size', type=int, default=512, help='dimension of word embedding vectors')
-    parser.add_argument('--batch_size', type=int, default=32) #32 normally
-    parser.add_argument('--results_dir',type=str, default='/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/results/zeroshot/')
-    parser.add_argument('--dat_dir', type=str, default='/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/data/')
+    parser.add_argument('--embed_size', type=int, default=128, help='dimension of word embedding vectors')
+    parser.add_argument('--batch_size', type=int, default=32)
+
     args = parser.parse_args()
     print(args)
     main(args)

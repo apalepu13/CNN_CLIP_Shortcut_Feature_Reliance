@@ -1,15 +1,16 @@
 import sys
-sys.path.insert(0, '../../models/joint_embedding_model/')
+sys.path.insert(0, '../models/')
 import pandas as pd
 import numpy as np
 from Data_Loading import *
 import torch
 print("CUDA Available: " + str(torch.cuda.is_available()))
 from Transformer import *
-from Pretraining import *
+from HelperFunctions import *
 
-# Device configuration
-multilabel=True
+multilabel=True #Set to determine script behavior
+
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 heads = np.array(['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion', 'Pneumonia',
@@ -20,7 +21,7 @@ mimic_dat = getDatasets(source='m', subset = ['test'], get_text=False, heads=hea
 
 outDF = []
 print("Hi")
-if multilabel:
+if multilabel: #Images can have multiple positive labels
     for i, (im1, im2, df, text) in enumerate(mimic_loader):
         dfvals = np.array([df[h].numpy() for h in heads]).T
         dfvals = (dfvals == 1).astype(int)
@@ -33,7 +34,7 @@ if multilabel:
     df.to_csv('/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/data/mimic_label_queries_multilabel.csv')
     print(df.shape)
     print(df.head())
-else:
+else: #Only including exclusive positivity images
     for i, (im1, im2, df, text) in enumerate(mimic_loader):
         dfvals = np.array([df[h].numpy() for h in heads]).T
         dfvals = (dfvals == 1).astype(int)
@@ -48,7 +49,7 @@ else:
                     outDF.append([myhead, text[r]])
 
     df = pd.DataFrame(outDF, columns=['Variable', 'Text'])
-    df.to_csv('/n/data2/hms/dbmi/beamlab/anil/Med_ImageText_Embedding/data/mimic_label_queries.csv')
+    df.to_csv('/n/data2/hms/dbmi/beamlab/anil/CNN_CLIP_Shortcut_Feature_Reliance/data/mimic_label_queries.csv')
     print(df.shape)
     print(np.unique(df['Variable'].values, return_counts=True))
 

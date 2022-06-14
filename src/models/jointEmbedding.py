@@ -5,6 +5,7 @@ import Transformer
 import numpy as np
 import Vision_Transformer
 
+#Defines CLIP model architecture
 class JointEmbeddingModel(nn.Module):
     def __init__(self, embed_dim, use_vit = False, imagenet = True):
         super().__init__()
